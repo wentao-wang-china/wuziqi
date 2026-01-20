@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>快速测试 - 赛博朋克五子棋</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #0a0e27;
+            color: #00f3ff;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #00f3ff;
+        }
+        .pass { border-color: #39ff14; color: #39ff14; }
+        .fail { border-color: #ff006e; color: #ff006e; }
+        button {
+            background: #00f3ff;
+            color: #0a0e27;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #39ff14;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 五子棋快速测试</h1>
+
+    <div id="results"></div>
+
+    <button onclick="runAllTests()">运行所有测试</button>
+    <button onclick="location.href='index.html'">打开游戏</button>
+
+    <!-- 加载所有JS文件 -->
+    <script src="js/utils.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/game.js"></script>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function log(message, pass = true) {
+            const div = document.createElement('div');
+            div.className = `test-result ${pass ? 'pass' : 'fail'}`;
+            div.textContent = `${pass ? '✅' : '❌'} ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        function runAllTests() {
+            results.innerHTML = '';
+            log('=== 开始测试 ===');
+
+            // 测试1: 工具函数
+            try {
+                const opponent = getOpponent(CONSTANTS.PLAYER_BLACK);
+                if (opponent === CONSTANTS.PLAYER_WHITE) {
+                    log('测试1: getOpponent 函数正常');
+                } else {
+                    log('测试1: getOpponent 函数失败', false);
+                }
+            } catch (e) {
+                log(`测试1: 错误 - ${e.message}`, false);
+            }
+
+            // 测试2: 棋盘创建
+            try {
+                const board = new Board(15);
+                board.initGrid();
+                if (board.grid.length === 15 && board.grid[0].length === 15) {
+                    log('测试2: 棋盘创建成功 (15x15)');
+                } else {
+                    log('测试2: 棋盘大小错误', false);
+                }
+            } catch (e) {
+                log(`测试2: 错误 - ${e.message}`, false);
+            }
+
+            // 测试3: 游戏引擎
+            try {
+                const game = new Game();
+                if (game.currentPlayer === CONSTANTS.PLAYER_BLACK) {
+                    log('测试3: 游戏引擎创建成功');
+                } else {
+                    log('测试3: 初始玩家错误', false);
+                }
+            } catch (e) {
+                log(`测试3: 错误 - ${e.message}`, false);
+            }
+
+            // 测试4: AI引擎
+            try {
+                const ai = new AI('medium', CONSTANTS.PLAYER_WHITE);
+                if (ai.maxDepth === 2 && ai.player === CONSTANTS.PLAYER_WHITE) {
+                    log('测试4: AI引擎创建成功 (中等难度, 深度2)');
+                } else {
+                    log('测试4: AI配置错误', false);
+                }
+            } catch (e) {
+                log(`测试4: 错误 - ${e.message}`, false);
+            }
+
+            // 测试5: 五连判定
+            try {
+                const game = new Game();
+                const board = new Board(15);
+                board.initGrid();
+
+                // 创建横向五连
+                for (let i = 0; i < 5; i++) {
+                    board.grid[7][i] = CONSTANTS.PLAYER_BLACK;
+                }
+
+                if (game.checkWin(7, 2, CONSTANTS.PLAYER_BLACK)) {
+                    log('测试5: 横向五连判定成功');
+                } else {
+                    log('测试5: 五连判定失败', false);
+                }
+            } catch (e) {
+                log(`测试5: 错误 - ${e.message}`, false);
+            }
+
+            // 测试6: AI候选点生成
+            try {
+                const board = new Board(15);
+                board.initGrid();
+                board.grid[7][7] = CONSTANTS.PLAYER_BLACK;
+                board.history.push({row: 7, col: 7, player: CONSTANTS.PLAYER_BLACK});
+
+                const ai = new AI('easy', CONSTANTS.PLAYER_WHITE);
+                const candidates = ai.getCandidateMoves(board);
+
+                if (candidates.length > 0 && candidates.length <= 20) {
+                    log(`测试6: 候选点生成成功 (${candidates.length}个候选点)`);
+                } else {
+                    log('测试6: 候选点数量异常', false);
+                }
+            } catch (e) {
+                log(`测试6: 错误 - ${e.message}`, false);
+            }
+
+            // 测试7: AI评估函数
+            try {
+                const board = new Board(15);
+                board.initGrid();
+
+                // 创建三连
+                board.grid[7][5] = CONSTANTS.PLAYER_BLACK;
+                board.grid[7][6] = CONSTANTS.PLAYER_BLACK;
+                board.grid[7][7] = CONSTANTS.PLAYER_BLACK;
+
+                const ai = new AI('easy', CONSTANTS.PLAYER_WHITE);
+                const pattern = ai.getPattern(board, 7, 6, 0, 1, CONSTANTS.PLAYER_BLACK);
+
+                if (pattern.count >= 3) {
+                    log(`测试7: 连子模式识别成功 (识别到${pattern.count}连)`);
+                } else {
+                    log('测试7: 模式识别失败', false);
+                }
+            } catch (e) {
+                log(`测试7: 错误 - ${e.message}`, false);
+            }
+
+            // 测试8: 音效管理器
+            try {
+                const audioMgr = new AudioManager();
+                if (audioMgr.enabled === true) {
+                    log('测试8: 音效管理器创建成功');
+                } else {
+                    log('测试8: 音效管理器状态错误', false);
+                }
+            } catch (e) {
+                log(`测试8: 错误 - ${e.message}`, false);
+            }
+
+            log('=== 测试完成 ===');
+        }
+
+        // 页面加载时自动运行测试
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('快速测试页面加载完成');
+            runAllTests();
+        });
+    </script>
+</body>
+</html>
