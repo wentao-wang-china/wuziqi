@@ -1,0 +1,502 @@
+/* =====================================================
+   赛博朋克五子棋 - 主题样式文件
+   包含: 配色方案、霓虹发光效果、背景动画
+   ===================================================== */
+
+/* === CSS 变量定义 === */
+:root {
+    /* 主题色 - 霓虹色 */
+    --neon-blue: #00f3ff;
+    --neon-pink: #ff006e;
+    --neon-purple: #8000ff;
+    --neon-green: #39ff14;
+    --neon-orange: #ff9500;
+
+    /* 背景色 */
+    --bg-dark: #0a0e27;
+    --bg-darker: #050714;
+    --bg-panel: #1a1a2e;
+    --bg-panel-light: #252745;
+
+    /* 文字色 */
+    --text-primary: #00f3ff;
+    --text-secondary: #8899aa;
+    --text-white: #ffffff;
+
+    /* 边框色 */
+    --border-primary: #00f3ff;
+    --border-secondary: #8000ff;
+
+    /* 发光效果 */
+    --glow-blue: 0 0 10px var(--neon-blue),
+                 0 0 20px var(--neon-blue),
+                 0 0 30px var(--neon-blue);
+    --glow-purple: 0 0 10px var(--neon-purple),
+                   0 0 20px var(--neon-purple),
+                   0 0 30px var(--neon-purple);
+    --glow-pink: 0 0 10px var(--neon-pink),
+                 0 0 20px var(--neon-pink),
+                 0 0 30px var(--neon-pink);
+    --glow-green: 0 0 10px var(--neon-green),
+                  0 0 20px var(--neon-green);
+}
+
+/* === 页面背景 === */
+body {
+    background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+    color: var(--text-primary);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* 背景网格动画 */
+.bg-grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridScroll 30s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes gridScroll {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(50px, 50px);
+    }
+}
+
+/* 额外的背景光晕效果 */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle at 30% 50%,
+        rgba(128, 0, 255, 0.1) 0%,
+        transparent 50%
+    ),
+    radial-gradient(
+        circle at 70% 50%,
+        rgba(0, 243, 255, 0.1) 0%,
+        transparent 50%
+    );
+    animation: bgPulse 15s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes bgPulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+/* === 文字发光效果 === */
+.text-glow {
+    color: var(--neon-blue);
+    text-shadow: var(--glow-blue);
+    animation: textPulse 3s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+    0%, 100% {
+        text-shadow: var(--glow-blue);
+    }
+    50% {
+        text-shadow: 0 0 15px var(--neon-blue),
+                     0 0 30px var(--neon-blue),
+                     0 0 45px var(--neon-blue);
+    }
+}
+
+/* === 页面标题样式 === */
+.game-header .title {
+    color: var(--neon-blue);
+}
+
+.game-header .subtitle {
+    color: var(--text-secondary);
+}
+
+/* === 状态栏样式 === */
+.status-bar {
+    background: rgba(26, 26, 46, 0.6);
+    border: 2px solid var(--neon-blue);
+    box-shadow: var(--glow-blue),
+                inset 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.status-text {
+    color: var(--neon-blue);
+}
+
+/* === Canvas 棋盘样式 === */
+#gameCanvas {
+    background: radial-gradient(circle at center, #0f1428 0%, var(--bg-dark) 100%);
+    border: 3px solid var(--neon-blue);
+    box-shadow: var(--glow-blue),
+                inset 0 0 30px rgba(0, 243, 255, 0.1);
+}
+
+/* === 棋盘信息样式 === */
+.info-label {
+    color: var(--text-secondary);
+}
+
+.info-value {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* === 控制面板样式 === */
+.control-panel {
+    background: rgba(26, 26, 46, 0.8);
+    border: 2px solid var(--neon-purple);
+    box-shadow: 0 0 20px rgba(128, 0, 255, 0.3),
+                inset 0 0 20px rgba(128, 0, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.panel-header {
+    border-bottom-color: var(--neon-purple);
+}
+
+.panel-title {
+    color: var(--neon-purple);
+    text-shadow: 0 0 10px var(--neon-purple);
+}
+
+.panel-decoration {
+    background: linear-gradient(90deg, transparent, var(--neon-purple), transparent);
+    box-shadow: 0 0 10px var(--neon-purple);
+}
+
+.group-title {
+    color: var(--neon-blue);
+}
+
+/* === 按钮主题样式 === */
+.btn-cyber {
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+}
+
+.btn-cyber:hover {
+    background: var(--neon-blue);
+    color: var(--bg-dark);
+    box-shadow: var(--glow-blue),
+                inset 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+.btn-primary {
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+}
+
+.btn-primary:hover {
+    background: var(--neon-blue);
+    color: var(--bg-dark);
+}
+
+.btn-secondary {
+    border-color: var(--neon-purple);
+    color: var(--neon-purple);
+}
+
+.btn-secondary:hover {
+    background: var(--neon-purple);
+    color: var(--bg-dark);
+    box-shadow: var(--glow-purple);
+}
+
+.btn-toggle {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+}
+
+.btn-toggle:hover {
+    background: var(--neon-green);
+    color: var(--bg-dark);
+    box-shadow: var(--glow-green);
+}
+
+.btn-toggle.off {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+}
+
+.btn-toggle.off:hover {
+    background: var(--text-secondary);
+}
+
+/* === 统计面板样式 === */
+.stat-item {
+    background: rgba(26, 26, 46, 0.5);
+    border-color: var(--neon-blue);
+}
+
+.stat-item:hover {
+    background: rgba(26, 26, 46, 0.8);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* === 规则列表样式 === */
+.rules-list li {
+    color: var(--text-secondary);
+}
+
+.rules-list li::before {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* === 页面底部样式 === */
+.game-footer {
+    border-top-color: rgba(0, 243, 255, 0.2);
+}
+
+.footer-text {
+    color: var(--text-secondary);
+}
+
+.footer-link {
+    color: var(--neon-blue);
+    text-decoration: none;
+}
+
+.footer-link:hover {
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* === 模态框样式 === */
+.modal-overlay {
+    background: rgba(5, 7, 20, 0.9);
+}
+
+.modal-content {
+    background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-panel-light) 100%);
+    border-color: var(--neon-blue);
+    box-shadow: var(--glow-blue),
+                inset 0 0 30px rgba(0, 243, 255, 0.1);
+}
+
+.modal-header {
+    border-bottom-color: var(--neon-blue);
+}
+
+.modal-decoration {
+    background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.modal-description {
+    color: var(--text-secondary);
+}
+
+/* === 难度选择按钮样式 === */
+.difficulty-btn {
+    background: rgba(26, 26, 46, 0.6);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.difficulty-btn:hover {
+    border-color: var(--neon-blue);
+    background: rgba(0, 243, 255, 0.1);
+    box-shadow: var(--glow-blue);
+}
+
+.difficulty-btn[data-difficulty="easy"]:hover {
+    border-color: var(--neon-green);
+    box-shadow: var(--glow-green);
+}
+
+.difficulty-btn[data-difficulty="easy"]:hover .difficulty-name {
+    color: var(--neon-green);
+    text-shadow: 0 0 10px var(--neon-green);
+}
+
+.difficulty-btn[data-difficulty="medium"]:hover {
+    border-color: var(--neon-blue);
+    box-shadow: var(--glow-blue);
+}
+
+.difficulty-btn[data-difficulty="medium"]:hover .difficulty-name {
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue);
+}
+
+.difficulty-btn[data-difficulty="hard"]:hover {
+    border-color: var(--neon-pink);
+    box-shadow: var(--glow-pink);
+}
+
+.difficulty-btn[data-difficulty="hard"]:hover .difficulty-name {
+    color: var(--neon-pink);
+    text-shadow: 0 0 10px var(--neon-pink);
+}
+
+.difficulty-name {
+    color: var(--text-primary);
+}
+
+.difficulty-desc {
+    color: var(--text-secondary);
+}
+
+/* === 胜利模态框样式 === */
+.modal-win {
+    border-color: var(--neon-green);
+    box-shadow: var(--glow-green);
+}
+
+.win-message {
+    color: var(--neon-green);
+    text-shadow: 0 0 10px var(--neon-green);
+}
+
+/* === 滚动条样式 === */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--neon-blue);
+    border-radius: 5px;
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--neon-purple);
+    box-shadow: 0 0 10px var(--neon-purple);
+}
+
+/* === 选中文字样式 === */
+::selection {
+    background: var(--neon-blue);
+    color: var(--bg-dark);
+}
+
+::-moz-selection {
+    background: var(--neon-blue);
+    color: var(--bg-dark);
+}
+
+/* === 扫描线效果（可选） === */
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+        to right,
+        transparent,
+        rgba(0, 243, 255, 0.3),
+        transparent
+    );
+    animation: scanline 8s linear infinite;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.3;
+}
+
+/* === 响应式主题调整 === */
+@media (max-width: 768px) {
+    .bg-grid {
+        background-size: 30px 30px;
+    }
+
+    .text-glow {
+        text-shadow: 0 0 10px var(--neon-blue);
+    }
+
+    #gameCanvas {
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    }
+}
+
+/* === 加载动画（可选） === */
+@keyframes loadingPulse {
+    0%, 100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.loading {
+    animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+/* === 闪烁效果 === */
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.blink {
+    animation: blink 1s ease-in-out infinite;
+}
+
+/* === 脉冲效果 === */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}

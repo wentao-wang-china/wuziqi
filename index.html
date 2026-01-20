@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="赛博朋克风格五子棋游戏 - 网页版AI对战">
+    <meta name="keywords" content="五子棋,AI,赛博朋克,游戏">
+    <meta name="author" content="Claude Code">
+    <title>赛博朋克五子棋 | Cyberpunk Gomoku</title>
+
+    <!-- 样式文件 -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/cyberpunk.css">
+
+    <!-- 预加载字体（可选） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 背景网格动画层 -->
+    <div class="bg-grid"></div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 页面标题 -->
+        <header class="game-header">
+            <h1 class="title text-glow">CYBERPUNK GOMOKU</h1>
+            <p class="subtitle">赛博朋克五子棋</p>
+        </header>
+
+        <!-- 游戏主体区域 -->
+        <main class="game-container">
+            <!-- 棋盘区域 -->
+            <section class="board-section">
+                <!-- 状态显示 -->
+                <div class="status-bar">
+                    <div class="status-text" id="statusText">选择难度开始游戏</div>
+                </div>
+
+                <!-- Canvas棋盘 -->
+                <canvas id="gameCanvas" width="660" height="660"></canvas>
+
+                <!-- 棋盘信息 -->
+                <div class="board-info">
+                    <span class="info-item">
+                        <span class="info-label">当前回合:</span>
+                        <span class="info-value" id="currentPlayer">黑棋</span>
+                    </span>
+                    <span class="info-item">
+                        <span class="info-label">难度:</span>
+                        <span class="info-value" id="difficultyDisplay">未选择</span>
+                    </span>
+                </div>
+            </section>
+
+            <!-- 控制面板 -->
+            <aside class="control-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">控制面板</h2>
+                    <div class="panel-decoration"></div>
+                </div>
+
+                <!-- 游戏控制按钮 -->
+                <div class="control-group">
+                    <h3 class="group-title">游戏控制</h3>
+                    <button class="btn-cyber btn-primary" id="restartBtn">
+                        <span class="btn-icon">⟲</span>
+                        <span class="btn-text">重新开始</span>
+                    </button>
+                    <button class="btn-cyber btn-secondary" id="undoBtn">
+                        <span class="btn-icon">↶</span>
+                        <span class="btn-text">悔棋</span>
+                    </button>
+                </div>
+
+                <!-- 音效控制 -->
+                <div class="control-group">
+                    <h3 class="group-title">音效设置</h3>
+                    <button class="btn-cyber btn-toggle" id="soundToggle">
+                        <span class="btn-icon">🔊</span>
+                        <span class="btn-text">音效开启</span>
+                    </button>
+                </div>
+
+                <!-- 游戏统计 -->
+                <div class="control-group">
+                    <h3 class="group-title">游戏统计</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">已下步数</div>
+                            <div class="stat-value" id="moveCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">AI思考时间</div>
+                            <div class="stat-value" id="aiThinkTime">0s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 游戏规则 -->
+                <div class="control-group">
+                    <h3 class="group-title">游戏规则</h3>
+                    <ul class="rules-list">
+                        <li>玩家执黑棋，AI执白棋</li>
+                        <li>先形成五子连线者获胜</li>
+                        <li>悔棋将撤销玩家和AI各一步</li>
+                        <li>标准15x15棋盘</li>
+                    </ul>
+                </div>
+            </aside>
+        </main>
+
+        <!-- 页面底部 -->
+        <footer class="game-footer">
+            <p class="footer-text">
+                Powered by Pure JavaScript |
+                <a href="https://github.com/wentao-wang-china/wuziqi" target="_blank" class="footer-link">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- 难度选择模态框 -->
+    <div class="modal-overlay" id="difficultyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title text-glow">选择游戏难度</h2>
+                <div class="modal-decoration"></div>
+            </div>
+
+            <div class="modal-body">
+                <p class="modal-description">选择AI对手的难度等级</p>
+
+                <div class="difficulty-options">
+                    <!-- 简单难度 -->
+                    <button class="difficulty-btn" data-difficulty="easy">
+                        <div class="difficulty-icon">⚡</div>
+                        <div class="difficulty-name">简单</div>
+                        <div class="difficulty-desc">搜索深度: 1层</div>
+                        <div class="difficulty-desc">适合新手</div>
+                    </button>
+
+                    <!-- 中等难度 -->
+                    <button class="difficulty-btn" data-difficulty="medium">
+                        <div class="difficulty-icon">⚔️</div>
+                        <div class="difficulty-name">中等</div>
+                        <div class="difficulty-desc">搜索深度: 2层</div>
+                        <div class="difficulty-desc">有一定挑战</div>
+                    </button>
+
+                    <!-- 困难难度 -->
+                    <button class="difficulty-btn" data-difficulty="hard">
+                        <div class="difficulty-icon">💀</div>
+                        <div class="difficulty-name">困难</div>
+                        <div class="difficulty-desc">搜索深度: 3层</div>
+                        <div class="difficulty-desc">高手挑战</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 胜利提示模态框 -->
+    <div class="modal-overlay hidden" id="winModal">
+        <div class="modal-content modal-win">
+            <div class="modal-header">
+                <h2 class="modal-title text-glow" id="winTitle">游戏结束</h2>
+            </div>
+
+            <div class="modal-body">
+                <div class="win-icon" id="winIcon">🎉</div>
+                <p class="win-message" id="winMessage">恭喜获胜！</p>
+                <button class="btn-cyber btn-primary" id="playAgainBtn">
+                    <span class="btn-text">再来一局</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript文件 -->
+    <script src="js/utils.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+
+    <!-- 初始化脚本 -->
+    <script>
+        // 页面加载完成后初始化游戏
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('%c=== 赛博朋克五子棋 ===', 'color: #00f3ff; font-size: 20px; font-weight: bold;');
+            console.log('%c游戏加载中...', 'color: #8000ff; font-size: 14px;');
+
+            // 游戏初始化将在 ui.js 中完成
+            // UI控制器会自动创建Game实例并显示难度选择
+        });
+    </script>
+</body>
+</html>
