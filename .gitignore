@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.log
+*.tmp
+*.temp
+
+# 测试文件
+test/
+*.test.js
+coverage/
+
+# 缓存
+.cache/
+*.cache
+
+# 构建产物
+dist/
+build/
+
+# 环境变量
+.env
+.env.local
+
+# 调试
+debug.log
+npm-debug.log*
+
+# Node (如果未来需要)
+node_modules/
+package-lock.json
+yarn.lock
