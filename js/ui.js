@@ -201,12 +201,8 @@ class UI {
       return;
     }
 
-    // 获取点击位置的棋盘坐标
-    const rect = this.elements.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const cell = this.game.board.getCellFromPosition(x, y);
+    // 获取点击位置的棋盘坐标（直接传入鼠标事件坐标）
+    const cell = this.game.board.getCellFromPosition(e.clientX, e.clientY);
 
     if (cell) {
       const {row, col} = cell;
@@ -246,12 +242,8 @@ class UI {
       return;
     }
 
-    // 获取鼠标位置的棋盘坐标
-    const rect = this.elements.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const cell = this.game.board.getCellFromPosition(x, y);
+    // 获取鼠标位置的棋盘坐标（直接传入鼠标事件坐标）
+    const cell = this.game.board.getCellFromPosition(e.clientX, e.clientY);
 
     if (cell) {
       const {row, col} = cell;
