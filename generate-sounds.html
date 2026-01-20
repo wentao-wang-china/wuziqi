@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>音效生成器 - 赛博朋克五子棋</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0e27;
+      color: #00f3ff;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      text-shadow: 0 0 10px #00f3ff;
+    }
+    .container {
+      background: #1a1a2e;
+      padding: 30px;
+      border-radius: 10px;
+      border: 2px solid #00f3ff;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+    button {
+      background: transparent;
+      border: 2px solid #00f3ff;
+      color: #00f3ff;
+      padding: 15px 30px;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: all 0.3s;
+      width: 100%;
+      max-width: 300px;
+      display: block;
+      margin: 10px auto;
+    }
+    button:hover {
+      background: #00f3ff;
+      color: #0a0e27;
+      box-shadow: 0 0 20px #00f3ff;
+    }
+    .info {
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(0, 243, 255, 0.1);
+      border-left: 3px solid #00f3ff;
+      font-size: 14px;
+    }
+    .status {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #39ff14;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 音效生成器</h1>
+
+  <div class="container">
+    <div class="info">
+      <p><strong>说明：</strong>此工具使用 Web Audio API 生成赛博朋克风格的游戏音效。</p>
+      <p>点击按钮后，音效将自动下载到本地，然后需要手动移动到 <code>assets/sounds/</code> 目录。</p>
+    </div>
+
+    <button onclick="generateAndDownload('place')">生成 place.mp3（落子音效）</button>
+    <button onclick="generateAndDownload('win')">生成 win.mp3（胜利音效）</button>
+    <button onclick="generateAndDownload('click')">生成 click.mp3（点击音效）</button>
+    <button onclick="generateAll()">生成全部音效</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    // 音频上下文
+    let audioContext = null;
+
+    // 初始化音频上下文
+    function initAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioContext;
+    }
+
+    /**
+     * 生成落子音效（短促的哔声）
+     */
+    function generatePlaceSound(context) {
+      const duration = 0.1;
+      const sampleRate = context.sampleRate;
+      const frameCount = sampleRate * duration;
+      const buffer = context.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      const frequency = 800; // 800Hz
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        const envelope = Math.exp(-t * 20); // 衰减包络
+        data[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.3;
+      }
+
+      return buffer;
+    }
+
+    /**
+     * 生成胜利音效（上升的三音符）
+     */
+    function generateWinSound(context) {
+      const duration = 0.8;
+      const sampleRate = context.sampleRate;
+      const frameCount = sampleRate * duration;
+      const buffer = context.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      const noteDuration = duration / 3;
+
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        const noteIndex = Math.floor(t / noteDuration);
+        const noteTime = t - noteIndex * noteDuration;
+
+        if (noteIndex < notes.length) {
+          const frequency = notes[noteIndex];
+          const envelope = Math.max(0, 1 - noteTime / noteDuration);
+          data[i] = Math.sin(2 * Math.PI * frequency * noteTime) * envelope * 0.3;
+        }
+      }
+
+      return buffer;
+    }
+
+    /**
+     * 生成点击音效（极短的滴声）
+     */
+    function generateClickSound(context) {
+      const duration = 0.05;
+      const sampleRate = context.sampleRate;
+      const frameCount = sampleRate * duration;
+      const buffer = context.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      const frequency = 1200; // 1200Hz
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        const envelope = Math.exp(-t * 40);
+        data[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.2;
+      }
+
+      return buffer;
+    }
+
+    /**
+     * AudioBuffer 转 WAV 格式
+     */
+    function bufferToWav(buffer) {
+      const length = buffer.length * buffer.numberOfChannels * 2;
+      const arrayBuffer = new ArrayBuffer(44 + length);
+      const view = new DataView(arrayBuffer);
+      const channels = [];
+      let offset = 0;
+      let pos = 0;
+
+      // WAV 头部
+      setString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + length, true);
+      setString(view, 8, 'WAVE');
+      setString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, buffer.numberOfChannels, true);
+      view.setUint32(24, buffer.sampleRate, true);
+      view.setUint32(28, buffer.sampleRate * buffer.numberOfChannels * 2, true);
+      view.setUint16(32, buffer.numberOfChannels * 2, true);
+      view.setUint16(34, 16, true);
+      setString(view, 36, 'data');
+      view.setUint32(40, length, true);
+
+      // 写入音频数据
+      for (let i = 0; i < buffer.numberOfChannels; i++) {
+        channels.push(buffer.getChannelData(i));
+      }
+
+      offset = 44;
+      while (pos < buffer.length) {
+        for (let i = 0; i < buffer.numberOfChannels; i++) {
+          const sample = Math.max(-1, Math.min(1, channels[i][pos]));
+          view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+          offset += 2;
+        }
+        pos++;
+      }
+
+      return arrayBuffer;
+    }
+
+    function setString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+
+    /**
+     * 下载音频文件
+     */
+    function downloadAudio(buffer, filename) {
+      const wav = bufferToWav(buffer);
+      const blob = new Blob([wav], { type: 'audio/wav' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    }
+
+    /**
+     * 生成并下载音效
+     */
+    function generateAndDownload(type) {
+      const context = initAudioContext();
+      const status = document.getElementById('status');
+
+      let buffer;
+      let filename;
+
+      switch(type) {
+        case 'place':
+          buffer = generatePlaceSound(context);
+          filename = 'place.wav';
+          break;
+        case 'win':
+          buffer = generateWinSound(context);
+          filename = 'win.wav';
+          break;
+        case 'click':
+          buffer = generateClickSound(context);
+          filename = 'click.wav';
+          break;
+      }
+
+      if (buffer) {
+        downloadAudio(buffer, filename);
+        status.textContent = `✓ ${filename} 生成成功！`;
+
+        // 播放预览
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(context.destination);
+        source.start();
+      }
+    }
+
+    /**
+     * 生成全部音效
+     */
+    function generateAll() {
+      const types = ['place', 'win', 'click'];
+      let index = 0;
+
+      function generateNext() {
+        if (index < types.length) {
+          generateAndDownload(types[index]);
+          index++;
+          setTimeout(generateNext, 500);
+        } else {
+          document.getElementById('status').textContent = '✓ 全部音效生成完成！请将文件移动到 assets/sounds/ 目录并重命名为 .mp3';
+        }
+      }
+
+      generateNext();
+    }
+  </script>
+</body>
+</html>
