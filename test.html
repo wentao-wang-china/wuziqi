@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基础功能测试 - 赛博朋克五子棋</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/cyberpunk.css">
+    <style>
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 20px;
+            border: 2px solid #00f3ff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .test-controls h3 {
+            color: #00f3ff;
+            margin-top: 0;
+            text-shadow: 0 0 10px #00f3ff;
+        }
+
+        .test-btn {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .test-btn:hover {
+            background: #00f3ff;
+            color: #0a0e27;
+            box-shadow: 0 0 10px #00f3ff;
+        }
+
+        .test-log {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #8000ff;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #8000ff;
+        }
+
+        .log-item {
+            margin: 3px 0;
+            padding: 3px;
+            border-left: 2px solid #8000ff;
+            padding-left: 8px;
+        }
+
+        .log-success {
+            border-left-color: #39ff14;
+            color: #39ff14;
+        }
+
+        .log-error {
+            border-left-color: #ff006e;
+            color: #ff006e;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <header class="game-header">
+            <h1 class="title text-glow">基础功能测试</h1>
+            <p class="subtitle">Testing: utils.js + board.js + game.js</p>
+        </header>
+
+        <main class="game-container">
+            <section class="board-section">
+                <div class="status-bar">
+                    <div class="status-text" id="statusText">点击右侧按钮进行测试</div>
+                </div>
+
+                <canvas id="gameCanvas" width="660" height="660"></canvas>
+
+                <div class="board-info">
+                    <span class="info-item">
+                        <span class="info-label">测试状态:</span>
+                        <span class="info-value" id="testStatus">待测试</span>
+                    </span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 测试控制面板 -->
+    <div class="test-controls">
+        <h3>测试面板</h3>
+
+        <button class="test-btn" onclick="testUtils()">1. 测试工具函数</button>
+        <button class="test-btn" onclick="testBoard()">2. 测试棋盘渲染</button>
+        <button class="test-btn" onclick="testCoordinates()">3. 测试坐标转换</button>
+        <button class="test-btn" onclick="testMakeMove()">4. 测试落子功能</button>
+        <button class="test-btn" onclick="testUndo()">5. 测试悔棋功能</button>
+        <button class="test-btn" onclick="testWinCheck()">6. 测试五连判定</button>
+        <button class="test-btn" onclick="testGame()">7. 测试游戏流程</button>
+        <button class="test-btn" onclick="runAllTests()">▶ 运行所有测试</button>
+        <button class="test-btn" onclick="resetAll()">🔄 重置</button>
+
+        <div class="test-log" id="testLog"></div>
+    </div>
+
+    <!-- 引入JS模块 -->
+    <script src="js/utils.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/game.js"></script>
+
+    <!-- 测试脚本 -->
+    <script>
+        let game = null;
+        let testResults = [];
+
+        // 日志函数
+        function log(message, isSuccess = true) {
+            const logDiv = document.getElementById('testLog');
+            const logItem = document.createElement('div');
+            logItem.className = isSuccess ? 'log-item log-success' : 'log-item log-error';
+            logItem.textContent = message;
+            logDiv.appendChild(logItem);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = '';
+            testResults = [];
+        }
+
+        function updateStatus(text, color = '#00f3ff') {
+            const statusEl = document.getElementById('statusText');
+            const testStatusEl = document.getElementById('testStatus');
+            statusEl.textContent = text;
+            statusEl.style.color = color;
+            testStatusEl.textContent = text;
+        }
+
+        // 测试1: 工具函数
+        function testUtils() {
+            log('=== 测试工具函数 ===');
+
+            try {
+                // 测试常量
+                log(`✓ BOARD_SIZE = ${CONSTANTS.BOARD_SIZE}`);
+                log(`✓ PLAYER_BLACK = ${CONSTANTS.PLAYER_BLACK}`);
+
+                // 测试辅助函数
+                const valid = isValidPosition(7, 7);
+                log(`✓ isValidPosition(7,7) = ${valid}`, valid);
+
+                const invalid = isValidPosition(-1, 5);
+                log(`✓ isValidPosition(-1,5) = ${invalid}`, !invalid);
+
+                const opponent = getOpponent('black');
+                log(`✓ getOpponent('black') = ${opponent}`, opponent === 'white');
+
+                const name = getPlayerName('black');
+                log(`✓ getPlayerName('black') = ${name}`);
+
+                // 测试Timer
+                Timer.start('test');
+                const time = Timer.end('test');
+                log(`✓ Timer测试: ${formatTime(time)}`);
+
+                updateStatus('✅ 工具函数测试通过', '#39ff14');
+                testResults.push({name: 'Utils', pass: true});
+
+            } catch (error) {
+                log(`✗ 工具函数测试失败: ${error.message}`, false);
+                updateStatus('❌ 工具函数测试失败', '#ff006e');
+                testResults.push({name: 'Utils', pass: false});
+            }
+        }
+
+        // 测试2: 棋盘渲染
+        function testBoard() {
+            log('=== 测试棋盘渲染 ===');
+
+            try {
+                const board = new Board();
+                const success = board.init('gameCanvas');
+
+                if (!success) {
+                    throw new Error('棋盘初始化失败');
+                }
+
+                log(`✓ 棋盘初始化成功`);
+                log(`✓ 棋盘大小: ${board.size}x${board.size}`);
+                log(`✓ 格子大小: ${board.cellSize}px`);
+                log(`✓ Canvas: ${board.canvas.width}x${board.canvas.height}`);
+
+                // 检查网格是否为空
+                let isEmpty = true;
+                for (let i = 0; i < board.size; i++) {
+                    for (let j = 0; j < board.size; j++) {
+                        if (board.grid[i][j] !== null) isEmpty = false;
+                    }
+                }
+                log(`✓ 棋盘初始为空: ${isEmpty}`, isEmpty);
+
+                updateStatus('✅ 棋盘渲染测试通过', '#39ff14');
+                testResults.push({name: 'Board', pass: true});
+
+            } catch (error) {
+                log(`✗ 棋盘测试失败: ${error.message}`, false);
+                updateStatus('❌ 棋盘测试失败', '#ff006e');
+                testResults.push({name: 'Board', pass: false});
+            }
+        }
+
+        // 测试3: 坐标转换
+        function testCoordinates() {
+            log('=== 测试坐标转换 ===');
+
+            try {
+                if (!game) {
+                    game = new Game();
+                    game.init();
+                }
+
+                const board = game.board;
+
+                // 测试getCellCenter
+                const center = board.getCellCenter(7, 7);
+                log(`✓ 中心点(7,7)像素坐标: (${center.x}, ${center.y})`);
+
+                // 测试左上角
+                const corner = board.getCellCenter(0, 0);
+                log(`✓ 左上角(0,0)像素坐标: (${corner.x}, ${corner.y})`);
+
+                // 测试右下角
+                const bottomRight = board.getCellCenter(14, 14);
+                log(`✓ 右下角(14,14)像素坐标: (${bottomRight.x}, ${bottomRight.y})`);
+
+                updateStatus('✅ 坐标转换测试通过', '#39ff14');
+                testResults.push({name: 'Coordinates', pass: true});
+
+            } catch (error) {
+                log(`✗ 坐标转换测试失败: ${error.message}`, false);
+                updateStatus('❌ 坐标转换测试失败', '#ff006e');
+                testResults.push({name: 'Coordinates', pass: false});
+            }
+        }
+
+        // 测试4: 落子功能
+        function testMakeMove() {
+            log('=== 测试落子功能 ===');
+
+            try {
+                if (!game) {
+                    game = new Game();
+                    game.init();
+                }
+
+                const board = game.board;
+                board.reset();
+
+                // 测试落黑子
+                const success1 = board.makeMove(7, 7, 'black');
+                log(`✓ 中心点落黑子: ${success1}`, success1);
+                log(`✓ 历史记录数: ${board.history.length}`, board.history.length === 1);
+
+                // 测试落白子
+                const success2 = board.makeMove(7, 8, 'white');
+                log(`✓ (7,8)落白子: ${success2}`, success2);
+
+                // 测试重复落子（应该失败）
+                const success3 = board.makeMove(7, 7, 'black');
+                log(`✓ 重复落子被拒绝: ${!success3}`, !success3);
+
+                // 测试棋盘状态
+                log(`✓ (7,7)位置: ${board.grid[7][7]}`, board.grid[7][7] === 'black');
+                log(`✓ (7,8)位置: ${board.grid[7][8]}`, board.grid[7][8] === 'white');
+
+                updateStatus('✅ 落子功能测试通过', '#39ff14');
+                testResults.push({name: 'MakeMove', pass: true});
+
+            } catch (error) {
+                log(`✗ 落子测试失败: ${error.message}`, false);
+                updateStatus('❌ 落子测试失败', '#ff006e');
+                testResults.push({name: 'MakeMove', pass: false});
+            }
+        }
+
+        // 测试5: 悔棋功能
+        function testUndo() {
+            log('=== 测试悔棋功能 ===');
+
+            try {
+                if (!game) {
+                    game = new Game();
+                    game.init();
+                }
+
+                const board = game.board;
+                board.reset();
+
+                // 落几步棋
+                board.makeMove(7, 7, 'black');
+                board.makeMove(7, 8, 'white');
+                board.makeMove(8, 7, 'black');
+
+                const beforeUndo = board.history.length;
+                log(`✓ 悔棋前历史记录: ${beforeUndo}步`);
+
+                // 悔棋
+                const undoMove = board.undoMove();
+                log(`✓ 悔棋成功，撤销: (${undoMove.row}, ${undoMove.col})`);
+                log(`✓ 悔棋后历史记录: ${board.history.length}步`);
+                log(`✓ (8,7)位置已清空: ${board.grid[8][7] === null}`, board.grid[8][7] === null);
+
+                updateStatus('✅ 悔棋功能测试通过', '#39ff14');
+                testResults.push({name: 'Undo', pass: true});
+
+            } catch (error) {
+                log(`✗ 悔棋测试失败: ${error.message}`, false);
+                updateStatus('❌ 悔棋测试失败', '#ff006e');
+                testResults.push({name: 'Undo', pass: false});
+            }
+        }
+
+        // 测试6: 五连判定
+        function testWinCheck() {
+            log('=== 测试五连判定 ===');
+
+            try {
+                if (!game) {
+                    game = new Game();
+                    game.init();
+                }
+
+                game.board.reset();
+
+                // 测试水平五连
+                log('测试水平五连:');
+                for (let i = 0; i < 5; i++) {
+                    game.board.makeMove(7, i, 'black');
+                }
+                const winH = game.checkWin(7, 4, 'black');
+                log(`✓ 水平五连检测: ${winH}`, winH);
+                if (winH) {
+                    log(`✓ 五连线坐标: ${JSON.stringify(game.winLine)}`);
+                }
+
+                // 重置并测试垂直五连
+                game.board.reset();
+                log('测试垂直五连:');
+                for (let i = 0; i < 5; i++) {
+                    game.board.makeMove(i, 7, 'white');
+                }
+                const winV = game.checkWin(4, 7, 'white');
+                log(`✓ 垂直五连检测: ${winV}`, winV);
+
+                // 重置并测试斜线五连
+                game.board.reset();
+                log('测试右下斜五连:');
+                for (let i = 0; i < 5; i++) {
+                    game.board.makeMove(i, i, 'black');
+                }
+                const winD = game.checkWin(4, 4, 'black');
+                log(`✓ 右下斜五连检测: ${winD}`, winD);
+
+                // 测试非五连
+                game.board.reset();
+                game.board.makeMove(0, 0, 'black');
+                game.board.makeMove(0, 1, 'black');
+                game.board.makeMove(0, 2, 'black');
+                const noWin = game.checkWin(0, 2, 'black');
+                log(`✓ 三连不判定为胜利: ${!noWin}`, !noWin);
+
+                updateStatus('✅ 五连判定测试通过', '#39ff14');
+                testResults.push({name: 'WinCheck', pass: true});
+
+            } catch (error) {
+                log(`✗ 五连判定测试失败: ${error.message}`, false);
+                updateStatus('❌ 五连判定测试失败', '#ff006e');
+                testResults.push({name: 'WinCheck', pass: false});
+            }
+        }
+
+        // 测试7: 游戏流程
+        function testGame() {
+            log('=== 测试游戏流程 ===');
+
+            try {
+                if (!game) {
+                    game = new Game();
+                    game.init();
+                }
+
+                // 测试游戏初始化
+                log(`✓ 游戏状态: ${game.gameState}`);
+                log(`✓ 当前玩家: ${game.currentPlayer}`);
+
+                // 测试开始游戏
+                game.start('medium', 'black');
+                log(`✓ 游戏已开始`);
+                log(`✓ 难度: ${game.difficulty}`);
+                log(`✓ 玩家执: ${game.playerSide}`);
+                log(`✓ AI执: ${game.aiSide}`);
+
+                // 测试玩家落子
+                const moveSuccess = game.handlePlayerMove(7, 7);
+                log(`✓ 玩家落子(7,7): ${moveSuccess}`, moveSuccess);
+
+                // 测试游戏统计
+                const stats = game.getStats();
+                log(`✓ 黑子数: ${stats.blackCount}`);
+                log(`✓ 白子数: ${stats.whiteCount}`);
+                log(`✓ 空位数: ${stats.emptyCount}`);
+                log(`✓ 总步数: ${stats.totalMoves}`);
+
+                updateStatus('✅ 游戏流程测试通过', '#39ff14');
+                testResults.push({name: 'Game', pass: true});
+
+            } catch (error) {
+                log(`✗ 游戏流程测试失败: ${error.message}`, false);
+                updateStatus('❌ 游戏流程测试失败', '#ff006e');
+                testResults.push({name: 'Game', pass: false});
+            }
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            clearLog();
+            log('========================================');
+            log('开始运行所有测试...');
+            log('========================================');
+
+            testUtils();
+            await delay(200);
+
+            testBoard();
+            await delay(200);
+
+            testCoordinates();
+            await delay(200);
+
+            testMakeMove();
+            await delay(200);
+
+            testUndo();
+            await delay(200);
+
+            testWinCheck();
+            await delay(200);
+
+            testGame();
+            await delay(200);
+
+            // 汇总结果
+            log('========================================');
+            const passed = testResults.filter(r => r.pass).length;
+            const total = testResults.length;
+            log(`测试完成: ${passed}/${total} 通过`);
+
+            if (passed === total) {
+                log('🎉 所有测试通过！', true);
+                updateStatus(`✅ 所有测试通过 (${passed}/${total})`, '#39ff14');
+            } else {
+                log('⚠️ 部分测试失败', false);
+                updateStatus(`⚠️ 测试通过 ${passed}/${total}`, '#ff006e');
+            }
+            log('========================================');
+        }
+
+        // 重置
+        function resetAll() {
+            clearLog();
+            if (game) {
+                game.board.reset();
+            }
+            updateStatus('已重置，准备测试', '#00f3ff');
+            log('系统已重置');
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('%c=== 基础功能测试 ===', 'color: #00f3ff; font-size: 20px; font-weight: bold;');
+            log('测试环境已准备就绪');
+            log('点击右侧按钮开始测试');
+        });
+    </script>
+</body>
+</html>
